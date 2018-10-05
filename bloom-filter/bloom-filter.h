@@ -1,4 +1,6 @@
-#include <stdint.h>
+#pragma once
+
+#include <stddef.h>
 #include <stdbool.h>
 
 #include "../bit-array/bit-array.h"
