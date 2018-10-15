@@ -6,8 +6,8 @@
 #include <string.h>
 
 BitArray BitArray_make ( size_t size ) {
-    int n_bytes = ( size / 8 ) + 1;
-    if( size % 8 == 0 ) n_bytes--;
+    size_t n_bytes = ( size / 8 );
+    if( size % 8 ) n_bytes++;
     BitArray ret = { size, malloc(n_bytes) };
     memset( ret.arr, 0, n_bytes );
     return ret;
