@@ -1,6 +1,5 @@
-# data-structures
-A repository of structures that also contain data.
+# Bits-And-Pieces
 
-That's all it is. Just a bunch of implementations of common data structures in the C(99) language. WIP.
+A collection of various algorithms and data structures, mostly in the C99 language.
 
 Feel free to contribute with some of your own.
