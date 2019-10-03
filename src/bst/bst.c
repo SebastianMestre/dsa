@@ -5,13 +5,18 @@
 
 #include "bst.h"
 
+Node* Node_new (void* value);
+Node* Node_insert (Node* this, void* value, Comparator* comp);
+void* Node_find (Node const* this, void* value, Comparator* comp);
+size_t Node_count (Node* this, void* value, Comparator* comp);
+void Node_free (Node* this);
+void Node_free_shared (Node* this);
+Node* Node_rotate_L (Node* this);
+Node* Node_rotate_R (Node* this);
 
-Node Node_rotate_L (Node this);
-Node Node_rotate_R (Node this);
 
-
-BST BST_new (bool (*comp)(void*,void*) ) {
-	BST this = malloc(sizeof(*this));
+BST* BST_new (Comparator *comp) {
+	BST* this = malloc(sizeof(*this));
 
 	this->root = NULL;
 	this->size = 0;
@@ -20,33 +25,33 @@ BST BST_new (bool (*comp)(void*,void*) ) {
 	return this;
 }
 
-void BST_insert (BST this, void* value) {
+void BST_insert (BST* this, void* value) {
 	this->size++;
 	this->root = Node_insert(this->root, value, this->comp);
 }
 
-void* BST_find (BST this, void* value) {
+void* BST_find (BST* this, void* value) {
 	return Node_find(this->root, value, this->comp);
 }
 
-size_t BST_count (BST this, void* value) {
+size_t BST_count (BST* this, void* value) {
 	return Node_count(this->root, value, this->comp);
 }
 
-void BST_free (BST this) {
+void BST_free (BST* this) {
 	Node_free(this->root);
 	free(this);
 }
 
-void BST_free_shared (BST this) {
+void BST_free_shared (BST* this) {
 	Node_free_shared(this->root);
 	free(this);
 }
 
 
 
-Node Node_new (void* value) {
-	Node this = malloc(sizeof(*this));
+Node* Node_new (void* value) {
+	Node* this = malloc(sizeof(*this));
 
 	this->value = value;
 	this->L = NULL;
@@ -57,21 +62,18 @@ Node Node_new (void* value) {
 	return this;
 }
 
-Node Node_insert (Node this, void* value, bool(*comp)(void*,void*)) {
+Node* Node_insert (Node* this, void* value, Comparator* comp) {
 	if (this == NULL)
 		return Node_new(value);
 
-	if (!(*comp)(this->value, value) && !(*comp)(value, this->value)) {
+	if (comp(value, this->value))
+		this->L = Node_insert(this->L, value, comp);
+	else if(comp(this->value, value))
+		this->R = Node_insert(this->R, value, comp);
+	else {
 		this->count++;
 		return this;
 	}
-
-	if ((*comp)(value, this->value)) {
-		this->L = Node_insert(this->L, value, comp);
-	} else {
-		this->R = Node_insert(this->R, value, comp);
-	}
-
 
 	size_t height_l = this->L ? this->L->height : 0;
 	size_t height_r = this->R ? this->R->height : 0;
@@ -89,31 +91,31 @@ Node Node_insert (Node this, void* value, bool(*comp)(void*,void*)) {
 	}
 }
 
-Node Node_search(Node this, void* value, bool (*comp)(void*, void*)) {
-	if(this == NULL) return NULL;
+Node const* Node_search(Node const* this, void* value, Comparator* comp) {
+	if(!this)
+		return NULL;
 
-	if(!(*comp)(this->value, value) && !(*comp)(value, this->value))
-		return this;
-
-	if((*comp)(value, this->value))
+	if(comp(value, this->value))
 		return Node_search(this->L, value, comp);
-	else
+	else if(comp(this->value, value))
 		return Node_search(this->R, value, comp);
+	else
+		return this;
 }
 
-void* Node_find (Node this, void* value, bool (*comp)(void*, void*)) {
-	Node result = Node_search(this, value, comp);
+void* Node_find (Node const* this, void* value, Comparator* comp) {
+	Node const* result = Node_search(this, value, comp);
 
 	return result ? result->value : NULL;
 }
 
-size_t Node_count (Node this, void* value, bool (*comp)(void*, void*)) {
-	Node result = Node_search(this, value, comp);
+size_t Node_count (Node* this, void* value, Comparator* comp) {
+	Node const* result = Node_search(this, value, comp);
 
 	return result ? result->count : 0;
 }
 
-void Node_free (Node this) {
+void Node_free (Node* this) {
 	if(!this) return;
 
 	free(this->value);
@@ -123,7 +125,7 @@ void Node_free (Node this) {
 	free(this);
 }
 
-void Node_free_shared (Node this) {
+void Node_free_shared (Node* this) {
 	if(!this) return;
 
 	Node_free_shared(this->L);
@@ -134,10 +136,10 @@ void Node_free_shared (Node this) {
 
 
 
-Node Node_rotate_L (Node this) {
-	Node move_up = this->R;
+Node* Node_rotate_L (Node* this) {
+	Node* move_up = this->R;
 
-	Node temp = move_up->L;
+	Node* temp = move_up->L;
 	move_up->L = this;
 	this->R = temp;
 
@@ -154,10 +156,10 @@ Node Node_rotate_L (Node this) {
 	return move_up;
 }
 
-Node Node_rotate_R (Node this) {
-	Node move_up = this->L;
+Node* Node_rotate_R (Node* this) {
+	Node* move_up = this->L;
 
-	Node temp = move_up->R;
+	Node* temp = move_up->R;
 	move_up->R = this;
 	this->L = temp;
 
@@ -173,3 +175,4 @@ Node Node_rotate_R (Node this) {
 
 	return move_up;
 }
+
